@@ -1,0 +1,38 @@
+<head>
+    <title>Ambrosia Site</title>
+</head>
+
+<template name='famous'>
+</template>
+
+<template name='card'>
+    <a class="thumbnail thumbnailType">
+        <span class='glyphicon glyphicon-camera'></span>
+        <span class='glyphicon glyphicon-trash'></span>
+        <img src='img/Food.jpg'>
+    </a>
+    <input class='input-card type_name_input' type='text' value='{{type}}'>
+</template>
+
+<template name='entity'>
+    <a class="thumbnail thumbnailType">
+        <span class='glyphicon glyphicon-camera'></span>
+        <span class='glyphicon glyphicon-trash'></span>
+        <img src='img/Food.jpg'>
+    </a>
+    <input class='input-card type_name_input' type='text' value='{{name}}'>
+</template>
+
+<template name='details'>
+    <div>
+        <input type='text' value='{{name}}'>
+        <br/>
+        <input type='text' value='{{snippet}}'>
+        <ul>
+            <li>
+                {{ingredients}}
+            </li>
+        </ul>
+        <button class='btn-default btn js-takeover'>Take-Over</button>
+    </div>
+</template>
