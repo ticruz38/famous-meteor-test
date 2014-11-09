@@ -10,25 +10,25 @@ define('entityview', function (require, exports, module) {
         EventHandler = require("famous/core/EventHandler"),
         Transitionable = require('famous/transitions/Transitionable'),
         Transform = require('famous/core/Transform'),
+        Flipper = require("famous/views/Flipper"),
         DetailView = require('detailview'),
-        Helpers = require('helpers');
+        EntitySurface = require('entity'), // not Entity since it's allready the name of the collection
+        Helpers = require('helpers'),
+        ContainerSurface = require("famous/surfaces/ContainerSurface");
 
     var surfaceEvents = new EventHandler();
 
     function entityView(id) {
         View.apply(this, arguments);
         this.options = Object.create(entityView.DEFAULT_OPTIONS);
-        this.grid = new GridLayout({
-            dimensions: [4, 2],
-            gutterSize: [50, 50]
-        });
+
         this._showing = false;
         this.detailView = new DetailView();
         this.initialState = {};
         this.toggled = false;
         this.index;
         this.toggleState = [];
-        this.views = [];
+        this.entitySurface;
         _bindEvents.call(this);
     }
     entityView.prototype = Object.create(View.prototype);
@@ -36,8 +36,8 @@ define('entityview', function (require, exports, module) {
 
     entityView.DEFAULT_OPTIONS = {
         transition: {
-            duration: 700,
-            curve: 'easeOutBounce'
+            duration: 2000,
+            curve: 'easeIn'
         },
         finalState: {
             transform: Transform.rotateX(Math.PI),
@@ -47,7 +47,7 @@ define('entityview', function (require, exports, module) {
         }
     }
 
-    function _toggleView(index) {
+    /*function _toggleView(index) {
         var transition = this.options.transition;
         this.grid._states.forEach(function (state, i) {
             if (i === index) {
@@ -61,7 +61,7 @@ define('entityview', function (require, exports, module) {
             }
         });
         this.toggled = !this.toggled;
-    }
+    }*/
 
     function _bindEvents() {
         var that = this;
@@ -72,6 +72,7 @@ define('entityview', function (require, exports, module) {
             that.detailView.setDetailView(surface);
             that._eventOutput.emit('setDetailView', surface.data);
         });
+
     }
 
     function _createInitialState(state) {
@@ -84,13 +85,17 @@ define('entityview', function (require, exports, module) {
 
     function _createView(id) {
         var that = this;
-        this.entities = new RenderNode();
+        this.entities = new ContainerSurface({
+            align: [.5, .5],
+            origin: [.5, .5],
+            size: [window.innerWidth, window.innerHeight - 200]
+        });
         Meteor.subscribe('entity', function () {
             var entity = Entity.find({
                 type: id
             });
-
-            entity.forEach(function (doc, i) {
+            this.entitySurface = new EntitySurface(entity);
+            /*entity.forEach(function (doc, i) {
                 var view = new View();
                 var entities = new ImageSurface({
                     content: 'img/Food.jpg',
@@ -101,10 +106,7 @@ define('entityview', function (require, exports, module) {
                         textAlign: 'center',
                     }
                 });
-                entities.inputModifier = new Modifier({
-                    size: [true, true],
-                    origin: [0, .5],
-                });
+
                 entities.views = this.views
                 entities.data = doc;
                 entities.index = i;
@@ -126,40 +128,57 @@ define('entityview', function (require, exports, module) {
                 view.add(entities);
                 view.add(entities.inputModifier).add(entities.inputSurface);
                 this.views.push(view);
-            }.bind(this));
-            this.grid.sequenceFrom(this.views);
+            }.bind(this));*/
+            var center = new Modifier({
+                origin: [0, .5],
+            });
+            this.entitySurface.on('clicked', function (surface) {
+                console.log(surface.index);
+                that.toggle(surface.index);
+                that._eventOutput.emit('setDetailView', surface.data);
+                that.detailView.setDetailView(this);
+            });
+            this.entities.add(this.entitySurface.grid);
+            //this.entities.add(this.detailView);
+            //this.grid.sequenceFrom(this.entitySurface.entities);
         }.bind(this));
-        this.entities.add(this.grid.modifier).add(this.grid);
-        this.entities.add(this.detailView);
+        //
     }
 
-    entityView.prototype.setEntityView = function (surface) {
+    entityView.prototype.setEntityView = function (renderables) {
         if (this._showing) {
             return;
         }
-        _createInitialState.call(this, surface.state);
-        _createView.call(this, surface.type);
-        this.entities.node = new RenderNode();
+        /*var flipper = new Flipper();
+        flipper.setFront(surface);
+        flipper.setBack(this.entities);*/
+        var surface = renderables.surface;
+        var node = renderables.node;
+        _createInitialState.call(this, node.state);
+        _createView.call(this, node.type);
         var back = new Modifier({
+            align: [.5, .5],
             origin: [0.5, 0.5],
-            transform: Transform.multiply(Transform.rotateX(Helpers.degree * 180), Transform.translate(0, 0, 20))
+            size: surface.getSize(),
+            transform: Transform.multiply(Transform.rotateX(Helpers.degree * 180), Transform.translate(0, 0, 0))
+            //transform: Transform.rotateX(Math.PI)
         });
-        //this.entities.node.add(surface);
-        this.entities.node.add(back).add(this.entities);
-        var finalState = this.options.finalState;
-        this.entities.state = surface.state;
-        this.entities.modifier = new Modifier({
-            transform: this.entities.state.transform,
-            opacity: this.entities.state.opacity,
-            size: this.entities.state.size,
-            origin: this.entities.state.origin
-        });
-        this._add(this.entities.modifier).add(this.entities.node);
+        surface.center = new Modifier({
+            align: [.5, .5],
+            origin: [.5, .5],
 
-        this.entities.state.transform.set(finalState.transform, this.options.transition);
-        this.entities.state.origin.set(finalState.origin, this.options.transition);
-        this.entities.state.opacity.set(finalState.opacity, this.options.transition);
-        this.entities.state.size.set(finalState.size, this.options.transition);
+        });
+        node.add(surface.center).add(back).add(this.entities);
+        var finalState = this.options.finalState;
+
+        node.state.transform.set(finalState.transform, this.options.transition);
+        node.state.origin.set(finalState.origin, this.options.transition);
+        node.state.opacity.set(finalState.opacity, this.options.transition);
+        node.state.size.set(finalState.size, this.options.transition);
+        //this._node.set(surface.modifier).add(surface); //using renderNode set method
+        //flipper.setAngle(Math.PI, this.options.transition); this function does'nt get started
+        this._add(node.modifier).add(surface);
+        //this._node.set(node.modifier).add(node);
         this._showing = !this._showing;
     }
 
@@ -169,28 +188,24 @@ define('entityview', function (require, exports, module) {
         this.entities.state.origin.set(this.initialState.origin, transition);
         this.entities.state.opacity.set(this.initialState.opacity, transition);
         this.entities.state.size.set(this.initialState.size, transition);
-        this.views = [];
         this.entities = {};
+        this.entitySurface.reset();
         this._showing = !this._showing;
     }
-    // _initialState private functions is writing here cause its directly join to prototype.toggle
-    function _initialState(state, index) {
-        var initialState = {
-            transform: state.transform.get()
-        };
-        this.toggleState[index] = initialState;
-    }
+
     entityView.prototype.toggle = function (index) {
-        index === undefined ? this.index = this.index : this.index = index;
-        this.grid._states.forEach(function (state, i) {
+        this.index = (index === undefined) ?
+            this.index : index;
+        var states = this.entitySurface.getInitialState();
+        this.entitySurface.grid._states.forEach(function (state, i) {
             if (i === this.index) {
                 return;
             }
             if (!this.toggled) {
-                _initialState.call(this, state, i);
+                //_initialState.call(this, state, i);
                 state.transform.set(Transform.multiply(Transform.thenMove(state.transform.get(), [100, 100]), Transform.scale(0, 0, 0)), this.options.transition);
             } else {
-                state.transform.set(this.toggleState[i].transform, this.options.transition);
+                state.transform.set(states[i].transform, this.options.transition);
             }
         }.bind(this));
         this.toggled = !this.toggled;

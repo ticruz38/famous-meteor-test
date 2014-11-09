@@ -3,3 +3,6 @@
 .red-bg {
     background-color: red;
 }
+.center {
+    -webkit-transform-origin: 50% 50% !important;
+}

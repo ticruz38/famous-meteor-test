@@ -1,7 +1,7 @@
 define('detailview', function (require, exports, module) {
 
     var View = require('famous/core/View'),
-        ScrollView = require('famous/views/Scrollview'),
+        ScrollView = require('famous/views/ScrollContainer'),
         Surface = require("famous/core/Surface"),
         ImageSurface = require('famous/surfaces/ImageSurface'),
         Modifier = require("famous/core/Modifier"),
@@ -15,7 +15,7 @@ define('detailview', function (require, exports, module) {
 
     var transition = {
         duration: 400,
-        curve: 'easeOut'
+        curve: 'linear'
     }
 
     function detailView() {
@@ -33,6 +33,7 @@ define('detailview', function (require, exports, module) {
             direction: 0,
             groupScroll: true
         });
+        this.scrollview.node = new RenderNode();
         this.scrollSequence = [];
         this.scrollview.sequenceFrom(this.scrollSequence);
         this.initialState = {};
@@ -65,20 +66,18 @@ define('detailview', function (require, exports, module) {
 
     function _scrollerMaker(entities, index) {
         var that = this;
-        this.scrollview.modifier = new Modifier({
-            opacity: 0
-        });
+        this.scrollview.modifier = new Modifier();
         this.scrollview.state = {
             opacity: new Transitionable()
         };
-        this.scrollview.modifier.transformFrom(this.scrollview.state.opacity.set(1), transition);
+        this.scrollview.modifier.opacityFrom(this.scrollview.state.opacity.set(0));
         //var that = this;
         entities.forEach(function (doc, i) {
-            console.log(i, index);
             if (index === i) {
                 return;
             }
-            var data = doc.entities.data;
+            var data = doc.data;
+            console.log(data);
             var node = new RenderNode();
             var entity = new Surface({
                 size: [undefined, undefined],
@@ -105,27 +104,29 @@ define('detailview', function (require, exports, module) {
             });
             node.add(entity.inputModifier).add(entity.inputSurface);
             node.add(entity);
+            this.scrollview.node.add(this.scrollview.modifier).add(this.scrollview);
             this.scrollSequence.push(node);
             entity.pipe(this.scrollview);
             entity.inputSurface.on('click', function () {
                 _switchView.call(that, this, entities);
             });
         }.bind(this));
+        this.scrollview.state.opacity.set(1, transition);
     }
 
-    function _createView(surface) {
+    function _createView(entity) {
         if (this._showing === true) {
             return;
         }
-        _createInitialState.call(this, surface.state, surface.index);
+        var curEntity = entity.getActive();
+        //_createInitialState.call(this, entity.state, entity.index);
 
         var node = this._renderables[0];
-        surface.stateIndex = surface.state[surface.index];
-        surface.stateIndex.transform.set(Transform.translate(0, 0, 0), transition);
-        surface.stateIndex.size.set([Helpers.winWidth / 2, 400], transition);
+        curEntity.state.transform.set(Transform.translate(0, 0, 0), transition);
+        curEntity.state.size.set([Helpers.winWidth / 2, 400], transition);
 
-        var title = surface.inputSurface
-        title.modifier = surface.inputModifier;
+        var title = curEntity.inputSurface
+        title.modifier = curEntity.inputModifier;
         title.state = {
             origin: new Transitionable(),
             size: new Transitionable(),
@@ -137,9 +138,10 @@ define('detailview', function (require, exports, module) {
 
         var details = new MeteorSurface({
             template: Template.details,
-            data: surface.data,
+            data: curEntity.data,
             size: [undefined, undefined]
         });
+        console.log(curEntity.data);
         details.state = {
             transform: new TransitionableTransform,
             align: new Transitionable,
@@ -151,26 +153,26 @@ define('detailview', function (require, exports, module) {
             transform: details.state.transform.set(Transform.multiply(Transform.translate(window.innerWidth / 2, window.innerHeight, 300), Transform.skewY(Math.PI / 4))),
         });
         details.state.transform.set(Transform.translate(0, 0, 0), transition);
-        node.add(surface.modifier).add(surface);
+        node.add(curEntity);
         node.add(title.modifier).add(title);
         node.add(details.modifier).add(details);
-        console.log(surface.views);
-        _scrollerMaker.call(this, surface.views, surface.index);
-        this._renderables.push(surface, title, details, this.scrollview);
-        this.flexSequence.push(node, this.scrollview);
+        _scrollerMaker.call(this, entity.entities, curEntity.index);
+        console.log(this.scrollview.node);
+        this._renderables.push(curEntity, title, details, this.scrollview);
+        this.flexSequence.push(node, this.scrollview.node);
         this.flex.sequenceFrom(this.flexSequence);
         this._add(this.flex);
         this._showing = !this._showing;
     }
 
-    detailView.prototype.setDetailView = function (surface) {
-        //_createInitialState.call(this, surface.state);
-        _createView.call(this, surface);
+    detailView.prototype.setDetailView = function (entity) {
+        //_createInitialState.call(this, entity.state);
+        _createView.call(this, entity);
     }
 
     detailView.prototype.toggle = function () {
-        this._renderables[1].stateIndex.transform.set(this.initialState.transform, transition);
-        this._renderables[1].stateIndex.size.set(this.initialState.size, transition);
+        this._renderables[1].state.transform.set(this._renderables[1].initialState.transform, transition);
+        this._renderables[1].state.size.set(this._renderables[1].initialState.size, transition);
         this._renderables[2].state.transform.set(Transform.translate(0, 0, 0), transition);
         this._renderables[2].state.size.set([undefined, true], transition);
         this._renderables[2].state.origin.set([0, 0.5], transition);
@@ -182,9 +184,10 @@ define('detailview', function (require, exports, module) {
                 direction: 1,
                 groupScroll: true
             });
+            this.scrollview.node = new RenderNode();
             this.scrollview.sequenceFrom(this.scrollSequence);
             this._renderables.push(new RenderNode());
-            this.flexSequence.splice(0, 2, this._renderables[0], this.scrollview);
+            this.flexSequence.splice(0, 2, this._renderables[0], this.scrollview.node);
             this._showing = !this._showing;
         }.bind(this));
     }

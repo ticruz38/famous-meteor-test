@@ -4,6 +4,7 @@ Meteor.startup(function () {
 
     var Engine = require('famous/core/Engine'),
         Surface = require('famous/core/Surface'),
+        Modifier = require("famous/core/Modifier"),
         View = require("famous/core/View"),
         ContainerSurface = require('famous/surfaces/ContainerSurface'),
         HeaderFooterLayout = require("famous/views/HeaderFooterLayout"),

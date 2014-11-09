@@ -4,7 +4,7 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
         Surface = require("famous/core/Surface"),
         ImageSurface = require("famous/surfaces/ImageSurface"),
         InputSurface = require("famous/surfaces/InputSurface"),
-        GridLayout = require("famous/views/GridLayout"),
+        GridLayout = require("gridlayout"),
         Lightbox = require("region"),
         Transition = require("transition"),
         View = require("famous/core/View"),
@@ -15,7 +15,8 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
         Transitionable = require('famous/transitions/Transitionable'),
         Easing = require('famous/transitions/Easing'),
         Helpers = require('helpers'),
-        EntityView = require('entityview');
+        EntityView = require('entityview'),
+        ContainerSurface = require("famous/surfaces/ContainerSurface");
 
     var surfaceEvents = new EventHandler();
 
@@ -50,7 +51,9 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
             var cards = Cards.find();
             var views = [];
             cards.forEach(function (doc, i) {
-                var view = new View();
+                var node = new RenderNode();
+                node.type = doc.type;
+                node.index = i;
                 var inputmodifier = new Modifier({
                     size: [undefined, true],
                     origin: [.43, .8],
@@ -58,11 +61,15 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
                 var imagesurface = new ImageSurface({
                     content: 'img/Food.jpg',
                     size: [undefined, undefined],
+                    classes: ['center'],
                     properties: {
                         backgroundColor: 'gray',
                         color: "#404040",
                         lineHeight: '200px',
                     }
+                });
+                imagesurface.modifier = new Modifier({
+                    origin: [.5, .5],
                 });
                 imagesurface.type = doc.type;
                 imagesurface.index = i;
@@ -77,16 +84,18 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
                 });
 
                 imagesurface.on('click', function () {
-                    that._eventInput.emit('SetEntityView', this);
+                    that._eventInput.emit('SetEntityView', {
+                        surface: this,
+                        node: node
+                    });
                 });
-
-                view.add(inputmodifier).add(inputsurface);
-                view.add(imagesurface);
-                views.push(view);
+                node.add(inputmodifier).add(inputsurface);
+                node.add(imagesurface.modifier).add(imagesurface);
+                views.push(node);
             });
             that.grid.sequenceFrom(views);
         });
-        this._add(this.grid);
+        this._add(this.modifier).add(this.grid);
     }
 
 
@@ -95,11 +104,14 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
         /*this._eventInput.on('SetEntityView', function (opt) {
             return this._setEntityView(opt);
         }.bind(this));*/
-        this._eventInput.on('SetEntityView', function (surface) {
-            that.toggle(surface.index);
-            surface.state = that.grid._states[surface.index];
-            surface.state.origin = new Transitionable([0, 0]);
-            that._eventOutput.emit('setEntityView', surface);
+        this._eventInput.on('SetEntityView', function (renderables) {
+            console.log(node);
+            var node = renderables.node;
+            that.toggle(node.index);
+            node.state = that.grid._states[node.index];
+            node.modifier = that.grid._modifiers[node.index];
+            node.state.origin = new Transitionable([.5, .5]);
+            that._eventOutput.emit('setEntityView', renderables);
         });
     }
 
