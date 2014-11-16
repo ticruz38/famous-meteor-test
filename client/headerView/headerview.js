@@ -50,21 +50,23 @@ define('headerview', ['famous/core/EventEmitter'], function (require, exports, m
 
         for (var i = 0; i < 3; i++) {
             var node = new RenderNode();
-            var surface = new Surface({
+            node.surface = new Surface({
+                content: i === 0 ? 'Card' : '',
                 size: [undefined, 200],
                 opacity: 0.3,
                 properties: {
-                    //border: '3px solid black',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    lineHeight: '100px',
+                    fontSize: '50px'
                 }
             });
-            surface.index = i;
-            surface.on('click', function () {
+            node.surface.index = i;
+            node.surface.on('click', function () {
                 that._eventInput.emit('headerClicked', this.index);
                 that._eventOutput.emit('headerClicked', this.index);
             });
 
-            var contentModifier = new Modifier({
+            /*var contentModifier = new Modifier({
                 size: [true, true],
                 origin: [.45, .5]
             });
@@ -75,22 +77,20 @@ define('headerview', ['famous/core/EventEmitter'], function (require, exports, m
                     zIndex: i,
                     fontSize: '50px'
                 }
-            });
-            node.add(contentModifier).add(node.contentSurface);
+            });*/
+            //node.add(contentModifier).add(node.contentSurface);
 
-            node.add(surface);
+            node.add(node.surface);
             that.nodes.push(node);
         }
 
-        console.log(this.nodes.length);
         this.header.sequenceFrom(this.nodes);
         this._add(this.header);
     }
 
     headerView.prototype.addItem = function (content) {
         var index = this.itemAdded;
-        console.log(index, content);
-        this.nodes[index].contentSurface.setContent(content);
+        this.nodes[index].surface.setContent(content);
         this.itemAdded == 1 ? this.options.ratios = [1, 1, 0] : this.options.ratios = [1, 1, 1];
         this.header.setRatios(this.options.ratios, this.options.transition);
         this.itemAdded = this.itemAdded + 1;

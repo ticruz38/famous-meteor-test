@@ -1,39 +1,12 @@
-famous.core.famous;
-
-Meteor.startup(function () {
-
-    var Engine = require('famous/core/Engine'),
-        Surface = require('famous/core/Surface'),
+define('appview', function (require, exports, module) {
+    var Surface = require('famous/core/Surface'),
         Modifier = require("famous/core/Modifier"),
         View = require("famous/core/View"),
         ContainerSurface = require('famous/surfaces/ContainerSurface'),
         HeaderFooterLayout = require("famous/views/HeaderFooterLayout"),
         cardView = require("cardview"),
         headerView = require('headerview'),
-        entityView = require('entityview'),
-        mainContext = Engine.createContext();
-
-    /*var layout = new HeaderFooterLayout();
-
-    var container = new ContainerSurface({
-        size: [undefined, 200]    });
-    container.add(new HeaderView());
-
-    layout.header.add(container);
-
-    layout.content.add(new cardView());
-
-    layout.footer.add(new Surface({
-        size: [undefined, 50],
-        content: "Footer",
-        classes: ["red-bg"],
-        properties: {
-            lineHeight: "50px",
-            textAlign: "center"
-        }
-    }));
-    mainContext.setPerspective(2000);
-    mainContext.add(layout);*/
+        entityView = require('entityview');
 
     function appView() {
         View.apply(this, arguments);
@@ -55,6 +28,7 @@ Meteor.startup(function () {
 
     function _createHeaderView() {
         this.headerContainer = new ContainerSurface({
+            origin: [0, 0],
             size: [undefined, 200]
         });
         this.headerContainer.add(this.headerView);
@@ -62,9 +36,10 @@ Meteor.startup(function () {
     }
 
     function _setListeners() {
-        this.cardView.on('setEntityView', function (surface) {
+        this.cardView.on('setEntityView', function (renderable) {
+            var surface = renderable.surface;
             this.headerView.addItem(surface.type);
-            this.entityView.setEntityView(surface);
+            this.entityView.setEntityView(renderable);
         }.bind(this));
         this.headerView.on('headerClicked', function (index) {
             if (index === 0) {
@@ -79,8 +54,5 @@ Meteor.startup(function () {
             this.headerView.addItem(data.name);
         }.bind(this));
     }
-    var mainContext = Engine.createContext();
-    var appView = new appView();
-
-    mainContext.add(appView);
+    module.exports = appView;
 });

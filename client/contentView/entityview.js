@@ -12,6 +12,7 @@ define('entityview', function (require, exports, module) {
         Transform = require('famous/core/Transform'),
         Flipper = require("famous/views/Flipper"),
         DetailView = require('detailview'),
+        FinalView = require("finalview"),
         EntitySurface = require('entity'), // not Entity since it's allready the name of the collection
         Helpers = require('helpers'),
         ContainerSurface = require("famous/surfaces/ContainerSurface");
@@ -21,13 +22,12 @@ define('entityview', function (require, exports, module) {
     function entityView(id) {
         View.apply(this, arguments);
         this.options = Object.create(entityView.DEFAULT_OPTIONS);
-
+        this._node;
         this._showing = false;
-        this.detailView = new DetailView();
+        this.finalView = new FinalView();
         this.initialState = {};
         this.toggled = false;
         this.index;
-        this.toggleState = [];
         this.entitySurface;
         _bindEvents.call(this);
     }
@@ -36,7 +36,7 @@ define('entityview', function (require, exports, module) {
 
     entityView.DEFAULT_OPTIONS = {
         transition: {
-            duration: 2000,
+            duration: 700,
             curve: 'easeIn'
         },
         finalState: {
@@ -88,55 +88,25 @@ define('entityview', function (require, exports, module) {
         this.entities = new ContainerSurface({
             align: [.5, .5],
             origin: [.5, .5],
-            size: [window.innerWidth, window.innerHeight - 200]
+            classes: ['center'],
+            //size: [window.innerWidth, window.innerHeight - 200]
         });
         Meteor.subscribe('entity', function () {
             var entity = Entity.find({
                 type: id
             });
             this.entitySurface = new EntitySurface(entity);
-            /*entity.forEach(function (doc, i) {
-                var view = new View();
-                var entities = new ImageSurface({
-                    content: 'img/Food.jpg',
-                    size: [true, undefined],
-                    properties: {
-                        backgroundColor: 'gray',
-                        color: "#404040",
-                        textAlign: 'center',
-                    }
-                });
 
-                entities.views = this.views
-                entities.data = doc;
-                entities.index = i;
-                entities.inputSurface = new Surface({
-                    content: doc.name,
-                    properties: {
-                        color: 'black',
-                        zIndex: 2,
-                        textAlign: 'center',
-                        lineHeight: '50px',
-                        fontSize: '50px',
-                    }
-                });
-
-                entities.on('click', function () {
-                    that._eventInput.emit('setDetailView', this);
-                });
-                view.entities = entities;
-                view.add(entities);
-                view.add(entities.inputModifier).add(entities.inputSurface);
-                this.views.push(view);
-            }.bind(this));*/
             var center = new Modifier({
                 origin: [0, .5],
             });
-            this.entitySurface.on('clicked', function (surface) {
-                console.log(surface.index);
+            this.entitySurface.on('clicked', function (renderables) {
+                var surface = renderables.surface,
+                    node = renderables.node;
+                console.log(node);
                 that.toggle(surface.index);
                 that._eventOutput.emit('setDetailView', surface.data);
-                that.detailView.setDetailView(this);
+                that.finalView.show(surface, node);
             });
             this.entities.add(this.entitySurface.grid);
             //this.entities.add(this.detailView);
@@ -149,46 +119,42 @@ define('entityview', function (require, exports, module) {
         if (this._showing) {
             return;
         }
-        /*var flipper = new Flipper();
-        flipper.setFront(surface);
-        flipper.setBack(this.entities);*/
+
         var surface = renderables.surface;
         var node = renderables.node;
+        this._state = node.state;
         _createInitialState.call(this, node.state);
         _createView.call(this, node.type);
         var back = new Modifier({
             align: [.5, .5],
             origin: [0.5, 0.5],
             size: surface.getSize(),
-            transform: Transform.multiply(Transform.rotateX(Helpers.degree * 180), Transform.translate(0, 0, 0))
-            //transform: Transform.rotateX(Math.PI)
+            transform: Transform.multiply(Transform.rotateX(Helpers.degree * 180), Transform.translate(0, window.innerHeight - 200, 0))
         });
         surface.center = new Modifier({
             align: [.5, .5],
             origin: [.5, .5],
 
         });
-        node.add(surface.center).add(back).add(this.entities);
+        node.set(back).add(this.entities);
         var finalState = this.options.finalState;
 
         node.state.transform.set(finalState.transform, this.options.transition);
         node.state.origin.set(finalState.origin, this.options.transition);
         node.state.opacity.set(finalState.opacity, this.options.transition);
         node.state.size.set(finalState.size, this.options.transition);
-        //this._node.set(surface.modifier).add(surface); //using renderNode set method
-        //flipper.setAngle(Math.PI, this.options.transition); this function does'nt get started
+
         this._add(node.modifier).add(surface);
-        //this._node.set(node.modifier).add(node);
         this._showing = !this._showing;
     }
 
     entityView.prototype.resetEntityView = function () {
         var transition = this.options.transition;
-        this.entities.state.transform.set(this.initialState.transform, transition);
-        this.entities.state.origin.set(this.initialState.origin, transition);
-        this.entities.state.opacity.set(this.initialState.opacity, transition);
-        this.entities.state.size.set(this.initialState.size, transition);
-        this.entities = {};
+        this._state.transform.set(this.initialState.transform, transition);
+        this._state.origin.set(this.initialState.origin, transition);
+        this._state.opacity.set(this.initialState.opacity, transition);
+        this._state.size.set(this.initialState.size, transition);
+        this._state = {};
         this.entitySurface.reset();
         this._showing = !this._showing;
     }

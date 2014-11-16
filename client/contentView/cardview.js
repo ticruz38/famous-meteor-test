@@ -54,11 +54,8 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
                 var node = new RenderNode();
                 node.type = doc.type;
                 node.index = i;
-                var inputmodifier = new Modifier({
-                    size: [undefined, true],
-                    origin: [.43, .8],
-                });
-                var imagesurface = new ImageSurface({
+
+                /*var imagesurface = new ImageSurface({
                     content: 'img/Food.jpg',
                     size: [undefined, undefined],
                     classes: ['center'],
@@ -67,9 +64,15 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
                         color: "#404040",
                         lineHeight: '200px',
                     }
+                });*/
+                var imagesurface = new MeteorSurface({
+                    template: Template.card,
+                    size: [undefined, undefined],
+                    data: doc,
+                    classes: ['center']
                 });
                 imagesurface.modifier = new Modifier({
-                    origin: [.5, .5],
+                    origin: [0, 0],
                 });
                 imagesurface.type = doc.type;
                 imagesurface.index = i;
@@ -83,14 +86,20 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
                     }
                 });
 
+                inputsurface.modifier = new Modifier({
+                    size: [true, true],
+                    origin: [1, 1],
+                    //transform: Transform.translate(imagesurface.getSize()[0] / 2, imagesurface.getSize()[1] / 2, 0)
+                });
                 imagesurface.on('click', function () {
                     that._eventInput.emit('SetEntityView', {
                         surface: this,
                         node: node
                     });
                 });
-                node.add(inputmodifier).add(inputsurface);
-                node.add(imagesurface.modifier).add(imagesurface);
+                //node.add(inputsurface);
+                node.add(imagesurface.modifier).add(imagesurface)
+                //node.add(inputsurface.modifier).add(inputsurface);
                 views.push(node);
             });
             that.grid.sequenceFrom(views);
@@ -104,14 +113,13 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
         /*this._eventInput.on('SetEntityView', function (opt) {
             return this._setEntityView(opt);
         }.bind(this));*/
-        this._eventInput.on('SetEntityView', function (renderables) {
-            console.log(node);
-            var node = renderables.node;
+        this._eventInput.on('SetEntityView', function (renderable) {
+            var node = renderable.node;
             that.toggle(node.index);
             node.state = that.grid._states[node.index];
             node.modifier = that.grid._modifiers[node.index];
             node.state.origin = new Transitionable([.5, .5]);
-            that._eventOutput.emit('setEntityView', renderables);
+            that._eventOutput.emit('setEntityView', renderable);
         });
     }
 

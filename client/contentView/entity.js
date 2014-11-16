@@ -34,21 +34,15 @@ define('entity', function (require, exports, module) {
                 origin: [.5, .5]
             });
             var node = new ContainerSurface({
-                align: [.5,.5],
-                origin: [.5,.5],
-                size: [window.innerWidth, window.innerHeight-200]
+                align: [.5, .5],
+                origin: [.5, .5],
             });
-            var entity = new ImageSurface({
-                content: 'img/Food.jpg',
-                classes: ['center'],
-                size: [true, undefined],
-                properties: {
-                    backgroundColor: 'gray',
-                    color: "#404040",
-                    textAlign: 'center',
-                }
+            var entity = new MeteorSurface({
+                template: Template.entity,
+                data: doc,
+                classes: ['center']
             });
-            entity.inputModifier = new Modifier({
+            /*entity.inputModifier = new Modifier({
                 size: [true, true],
                 origin: [0, .5],
             });
@@ -61,21 +55,30 @@ define('entity', function (require, exports, module) {
                     textAlign: 'center',
                     fontSize: '50px'
                 }
-            });
+            });*/
             entity.on('click', function () {
+                console.log(node);
                 that.curEntity = this;
-                that._eventOutput.emit('clicked', this);
+                that._eventOutput.emit('clicked', {
+                    surface: this,
+                    node: node
+                });
             });
             node.add(entity);
-            node.add(entity.inputModifier).add(entity.inputSurface);
+            //node.add(entity.inputModifier).add(entity.inputSurface);
             that.entities.push(entity);
             that.node.push(node);
             entity.data = doc;
             entity.index = i;
+            entity.getState = function () {
+                return that.grid._states[entity.index]
+            };
+            entity.getModifier = function () {
+                return that.grid._modifiers[entity.index]
+            };
         });
-        console.log(this.index, this.entities);
         this.grid.setOptions({
-            dimensions: this.index < 3 ? [this.index, 1] : [3, Math.round(this.index / 3)]
+            dimensions: this.index < 3 ? [this.index, 2] : [3, Math.round(this.index / 3)]
         });
         this.grid.sequenceFrom(this.node);
     }
@@ -99,16 +102,14 @@ define('entity', function (require, exports, module) {
     entity.prototype.getActive = function () {
         this.curEntity.state = this.grid._states[this.curEntity.index];
         this.curEntity.initialState = _initialState.call(this, this.curEntity.index);
-        console.log(this.curEntity.initialState);
         return this.curEntity;
     }
     entity.prototype.reset = function () {
-        console.log('reset');
         this.entities = [];
         this.index = 0;
     }
     entity.prototype.getInitialState = function (index) {
-        return _initialState.call(this);
+        return _initialState.call(this, index);
     }
 
     module.exports = entity;

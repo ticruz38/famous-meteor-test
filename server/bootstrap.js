@@ -80,6 +80,5 @@ Meteor.startup(function () {
             }
         }
     }
-    console.log(Cards);
 
 });
