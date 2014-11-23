@@ -6,19 +6,14 @@
 </template>
 
 <template name='card' class='card'>
-    <a class="thumbnail thumbnailType">
-        <span class='glyphicon glyphicon-camera'></span>
-        <span class='glyphicon glyphicon-trash'></span>
-        <input class='input-card type_name_input' type='text' value='{{type}}'>
-    </a>
-
+    <svg class='card-container'+{{index}}+'' id="cardsvg">
+    </svg>
+    <input class='input-card type_name_input' type='text' value='{{type}}'>
 </template>
 
 <template name='entity' class='entity'>
-    <a class="thumbnail thumbnailType">
-        <span class='glyphicon glyphicon-camera'></span>
-        <span class='glyphicon glyphicon-trash'></span>
-    </a>
+    <svg class='entity-container' id="entitysvg">
+    </svg>
     <input class='input-card type_name_input' type='text' value='{{name}}'>
 </template>
 

@@ -89,7 +89,6 @@ define('entityview', function (require, exports, module) {
             align: [.5, .5],
             origin: [.5, .5],
             classes: ['center'],
-            //size: [window.innerWidth, window.innerHeight - 200]
         });
         Meteor.subscribe('entity', function () {
             var entity = Entity.find({
@@ -97,9 +96,6 @@ define('entityview', function (require, exports, module) {
             });
             this.entitySurface = new EntitySurface(entity);
 
-            var center = new Modifier({
-                origin: [0, .5],
-            });
             this.entitySurface.on('clicked', function (renderables) {
                 var surface = renderables.surface,
                     node = renderables.node;
@@ -112,7 +108,6 @@ define('entityview', function (require, exports, module) {
             //this.entities.add(this.detailView);
             //this.grid.sequenceFrom(this.entitySurface.entities);
         }.bind(this));
-        //
     }
 
     entityView.prototype.setEntityView = function (renderables) {
@@ -169,7 +164,7 @@ define('entityview', function (require, exports, module) {
             }
             if (!this.toggled) {
                 //_initialState.call(this, state, i);
-                state.transform.set(Transform.multiply(Transform.thenMove(state.transform.get(), [100, 100]), Transform.scale(0, 0, 0)), this.options.transition);
+                state.transform.set(Transform.multiply(Transform.thenMove(state.transform.get(), [0, 0, -50]), Transform.scale(.8, .8, .8)), this.options.transition);
             } else {
                 state.transform.set(states[i].transform, this.options.transition);
             }

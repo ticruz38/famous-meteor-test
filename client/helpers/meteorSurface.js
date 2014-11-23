@@ -16,6 +16,7 @@ MeteorSurface = function (options) {
             // Create container
             surface.content = document.createElement('div');
             surface.content.style.height = "inherit";
+            surface.content.style.width = "inherit";
             if (options.data) {
                 // Create instance
                 self.templateInstance = UI.renderWithData(options.template, options.data, surface.content);

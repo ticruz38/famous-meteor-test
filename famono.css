@@ -7,7 +7,7 @@
     -webkit-transform-origin: 50% 50% !important;
 }
 .thumbnailType {
-    background-image: url('img/Food.jpg');
+    background-image: url('img/old20.svg');
     height: inherit;
     background-size: 100% 90%;
     background-repeat: no-repeat;
@@ -22,4 +22,18 @@ input.input-card {
     width: 100%;
     text-align: center;
     font-size: 50px;
+}
+#svg {
+    height: '200px';
+    width: '200px';
+}
+.entity-container {
+    height: inherit;
+    width: inherit;
+    position: absolute;
+}
+.card-container {
+    height: inherit;
+    width: inherit;
+    position: absolute;
 }

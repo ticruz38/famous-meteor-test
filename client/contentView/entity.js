@@ -6,6 +6,7 @@ define('entity', function (require, exports, module) {
         View = require("famous/core/View"),
         Grid = require("famous/views/GridLayout"),
         RenderNode = require("famous/core/RenderNode"),
+        Transitionable = require('famous/transitions/Transitionable'),
         ContainerSurface = require("famous/surfaces/ContainerSurface");
 
 
@@ -28,7 +29,9 @@ define('entity', function (require, exports, module) {
 
     function _create(entities) {
         var that = this;
+        Session.set('entity', true);
         entities.forEach(function (doc, i) {
+            console.log(doc, i);
             that.index++;
             var center = new Modifier({
                 origin: [.5, .5]
@@ -42,6 +45,7 @@ define('entity', function (require, exports, module) {
                 data: doc,
                 classes: ['center']
             });
+            console.log(Template.entity);
             /*entity.inputModifier = new Modifier({
                 size: [true, true],
                 origin: [0, .5],
@@ -71,10 +75,10 @@ define('entity', function (require, exports, module) {
             entity.data = doc;
             entity.index = i;
             entity.getState = function () {
-                return that.grid._states[entity.index]
+                return _getState.call(that, entity.index);
             };
             entity.getModifier = function () {
-                return that.grid._modifiers[entity.index]
+                return _getModifier.call(that, entity.index);
             };
         });
         this.grid.setOptions({
@@ -98,6 +102,19 @@ define('entity', function (require, exports, module) {
         } else {
             return this.initialState;
         }
+    }
+
+    function _getState(index) {
+        var state = this.grid._states[index];
+        state.origin = new Transitionable([0.5, 0.5]);
+        return state;
+    }
+
+    function _getModifier(index) {
+        var modifier = this.grid._modifiers[index],
+            state = this.grid._states[index];
+        modifier.originFrom(state.origin);
+        return modifier;
     }
     entity.prototype.getActive = function () {
         this.curEntity.state = this.grid._states[this.curEntity.index];
