@@ -19,10 +19,10 @@ MeteorSurface = function (options) {
             surface.content.style.width = "inherit";
             if (options.data) {
                 // Create instance
-                self.templateInstance = UI.renderWithData(options.template, options.data, surface.content);
+                self.templateInstance = Blaze.renderWithData(options.template, options.data, surface.content);
             } else {
                 // Create instance
-                self.templateInstance = UI.render(options.template, surface.content);
+                self.templateInstance = Blaze.render(options.template, surface.content);
             }
         }
 
@@ -33,7 +33,7 @@ MeteorSurface = function (options) {
     // Clean up
     surface.cleanup = function (allocator) {
         // Remove template instance
-        UI.remove(self.templateInstance);
+        Blaze.remove(self.templateInstance);
         // Call super
         Surface.prototype.cleanup.call(surface, allocator);
     };

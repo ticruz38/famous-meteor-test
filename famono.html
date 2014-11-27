@@ -6,27 +6,27 @@
 </template>
 
 <template name='card' class='card'>
-    <svg class='card-container'+{{index}}+'' id="cardsvg">
+    <svg class='card-container{{index}}' id="cardsvg">
     </svg>
-    <input class='input-card type_name_input' type='text' value='{{type}}'>
+    <input class=' input-card type_name_input ' type='text ' value='{{type}} '>
 </template>
 
-<template name='entity' class='entity'>
-    <svg class='entity-container' id="entitysvg">
+<template name='entity ' class='entity '>
+    <svg class='entity-container ' id="entitysvg">
     </svg>
-    <input class='input-card type_name_input' type='text' value='{{name}}'>
+    <input class='input-card type_name_input ' type='text ' value='{{name}} '>
 </template>
 
-<template name='details'>
+<template name='details '>
     <div>
-        <input type='text' value='{{name}}'>
+        <input type='text ' value='{{name}} '>
         <br/>
-        <input type='text' value='{{snippet}}'>
+        <input type='text ' value='{{snippet}} '>
         <ul>
             <li>
                 {{ingredients}}
             </li>
         </ul>
-        <button class='btn-default btn js-takeover'>Take-Over</button>
+        <button class='btn-default btn js-takeover '>Take-Over</button>
     </div>
 </template>

@@ -65,6 +65,8 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
                         lineHeight: '200px',
                     }
                 });*/
+                doc.index = i;
+                console.log(doc);
                 var imagesurface = new MeteorSurface({
                     template: Template.card,
                     size: [undefined, undefined],
