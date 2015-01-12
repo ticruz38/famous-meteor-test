@@ -4,9 +4,8 @@
 # but you can also edit it by hand.
 
 meteor-platform
-raix:famono
 underscore
-bootstrap
-d3
-mirageglobe:snapsvgcdn
-
+autopublish
+raix:famono@0.9.24-pre.2
+cfs:standard-packages
+cfs:filesystem

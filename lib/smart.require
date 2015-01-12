@@ -1,15 +1,16 @@
 {
-	"famous": {
-		"git": "https://github.com/Famous/famous.git",
+  "famous": {
+        "git": "https://github.com/Famous/famous.git",
         "root": "src"
-	},
-	"famous.polyfills": {
-		"git": "https://github.com/Famous/polyfills.git"
-	},
-	"library": {
-		"git": "https://github.com/raix/library.git"
-	},
-	"famous-polyfills": {
-		"alias": "famous.polyfills"
-	}
+  },
+  "famous.polyfills": {
+    "git": "https://github.com/Famous/polyfills.git"
+  },
+  "library": {
+    "git": "https://github.com/raix/library.git"
+  },
+  "snap.svg": {
+    "bower": "Snap.svg",
+    "root": "dist"
+  }
 }

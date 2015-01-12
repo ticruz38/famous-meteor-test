@@ -23,17 +23,38 @@ input.input-card {
     text-align: center;
     font-size: 50px;
 }
-#svg {
-    height: '200px';
-    width: '200px';
-}
 .entity-container {
     height: inherit;
     width: inherit;
     position: absolute;
 }
-.card-container {
-    height: inherit;
+.item {
     width: inherit;
+    height: inherit;
+}
+.card-container {
+    width: inherit;
+    height: inherit;
+    position: absolute;
+}
+svg {
+    overflow: visible;
+    position: absolute;
+}
+svg.widget{
+    width: inherit;
+    height: inherit;
+}
+div.widget {
+    overflow: visible;
+}
+.famous-container {
+    z-index: -1;
+}
+div.svgmodal {
+    height: 100px;
+    width: 100px;
+}
+div {
     position: absolute;
 }

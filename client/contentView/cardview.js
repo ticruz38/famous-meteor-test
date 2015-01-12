@@ -1,10 +1,10 @@
-define('cardview', ['famous/core/EventEmitter'], function (require, exports, module) {
+define('cardview', function (require, exports, module) {
 
     var RenderNode = require("famous/core/RenderNode"),
         Surface = require("famous/core/Surface"),
         ImageSurface = require("famous/surfaces/ImageSurface"),
         InputSurface = require("famous/surfaces/InputSurface"),
-        GridLayout = require("gridlayout"),
+        GridLayout = require("famous/views/GridLayout"),
         Lightbox = require("region"),
         Transition = require("transition"),
         View = require("famous/core/View"),
@@ -16,6 +16,7 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
         Easing = require('famous/transitions/Easing'),
         Helpers = require('helpers'),
         EntityView = require('entityview'),
+        CardSnap = require('card'),
         ContainerSurface = require("famous/surfaces/ContainerSurface");
 
     var surfaceEvents = new EventHandler();
@@ -27,9 +28,10 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
             gutterSize: [50, 50]
         });
         this.index;
+        this.cards = [];
         this.initialState = [];
         this.toggled = false;
-        _createCardView.call(this);
+        _createView.call(this);
         _bindEvents.call(this);
     }
 
@@ -45,74 +47,52 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
         }
     }
 
-    function _createCardView() {
+    function _createView() {
         var that = this;
         Meteor.subscribe('cards', function () {
             var cards = Cards.find();
-            var views = [];
-            cards.forEach(function (doc, i) {
-                var node = new RenderNode();
-                node.type = doc.type;
-                node.index = i;
-
-                /*var imagesurface = new ImageSurface({
-                    content: 'img/Food.jpg',
-                    size: [undefined, undefined],
-                    classes: ['center'],
-                    properties: {
-                        backgroundColor: 'gray',
-                        color: "#404040",
-                        lineHeight: '200px',
-                    }
-                });*/
-                doc.index = i;
-                console.log(doc);
-                var imagesurface = new MeteorSurface({
-                    template: Template.card,
-                    size: [undefined, undefined],
-                    data: doc,
-                    classes: ['center']
-                });
-                imagesurface.modifier = new Modifier({
-                    origin: [0, 0],
-                });
-                imagesurface.type = doc.type;
-                imagesurface.index = i;
-                var inputsurface = new Surface({
-                    content: doc.type,
-                    properties: {
-                        color: 'black',
-                        zIndex: 1,
-                        textAlign: 'center',
-                        fontSize: '50px',
-                    }
-                });
-
-                inputsurface.modifier = new Modifier({
-                    size: [true, true],
-                    origin: [1, 1],
-                    //transform: Transform.translate(imagesurface.getSize()[0] / 2, imagesurface.getSize()[1] / 2, 0)
-                });
-                imagesurface.on('click', function () {
-                    that._eventInput.emit('SetEntityView', {
-                        surface: this,
-                        node: node
-                    });
-                });
-                //node.add(inputsurface);
-                node.add(imagesurface.modifier).add(imagesurface)
-                //node.add(inputsurface.modifier).add(inputsurface);
-                views.push(node);
+            Template.card.cards = cards;
+            var ContainerSurface = new MeteorSurface({
+                template: Template.card,
+                size: [undefined, undefined],
+                classes: ['container']
             });
-            that.grid.sequenceFrom(views);
+
+            Template.card.rendered = function () {
+                this.findAll('.item').forEach(function (item, i) {
+                    var data = this.view._domrange.members[0].members[i].view.dataVar.curValue; //access Data item
+                    var node = new RenderNode();
+                    node.index = i;
+                    node.type = data.type;
+                    node.surface = new Surface({
+                        content: item,
+                        classes: ['center']
+                    });
+                    node.surface.modifier = new Modifier({
+                        origin: [0, 0]
+                    });
+                    node.surface.on('click', function () {
+                        that._eventInput.emit('SetEntityView', {
+                            surface: this,
+                            node: node
+                        });
+                    });
+                    var cardSnap = new CardSnap(item);
+                    node.add(node.surface.modifier).add(node.surface);
+                    that.cards.push(node);
+                }.bind(this));
+            }
+            that._add(ContainerSurface);
+            that.grid.sequenceFrom(that.cards);
         });
-        this._add(this.modifier).add(this.grid);
+        this._add(this.grid);
     }
 
 
     function _bindEvents() {
         var that = this;
-        /*this._eventInput.on('SetEntityView', function (opt) {
+        /*this._eventInput.on('
+                            SetEntityView ', function (opt) {
             return this._setEntityView(opt);
         }.bind(this));*/
         this._eventInput.on('SetEntityView', function (renderable) {
@@ -146,6 +126,11 @@ define('cardview', ['famous/core/EventEmitter'], function (require, exports, mod
             }
         }.bind(this));
         this.toggled = !this.toggled;
+    }
+
+    cardView.prototype.add = function (surface) {
+        this.cards.push(surface);
+        this.grid.sequenceFrom(that.cards);
     }
     module.exports = cardView;
 });

@@ -28,7 +28,7 @@ define('entityview', function (require, exports, module) {
         this.initialState = {};
         this.toggled = false;
         this.index;
-        this.entitySurface;
+
         _bindEvents.call(this);
     }
     entityView.prototype = Object.create(View.prototype);
@@ -83,18 +83,42 @@ define('entityview', function (require, exports, module) {
         initialState.size = state.size.get();
     }
 
-    function _createView(id) {
-        var that = this;
-        this.entities = new ContainerSurface({
-            align: [.5, .5],
-            origin: [.5, .5],
-            classes: ['center'],
-        });
+    function _subscribe(type) {
+        var data;
         Meteor.subscribe('entity', function () {
-            var entity = Entity.find({
-                type: id
+            data = Entity.find({
+                type: type
             });
-            this.entitySurface = new EntitySurface(entity);
+        });
+        console.log(data);
+        return data ? data : null;
+
+    }
+
+    function _createView(type) {
+        var that = this;
+        var entities = false;
+        this.entitySurface = new EntitySurface(type);
+        /*Blaze.renderWithData(Template.entity, _subscribe.call(this, type), Body);
+        console.log(_subscribe.call(this, type), Template.entity, Template.card);
+        Template.entity.rendered = function () {
+            console.log('created');
+            that.entitySurface = new EntitySurface(this);
+        }
+
+        that.entitySurface.on('clicked', function (renderables) {
+            var surface = renderables.surface,
+                node = renderables.node;
+            console.log(node);
+            that.toggle(node.index);
+            that._eventOutput.emit('setDetailView', node.data);
+            that.finalView.show(surface, node);
+        });*/
+        //this._add(that.entitySurface.grid);
+    }
+
+
+    /*this.entitySurface = new EntitySurface(entity);
 
             this.entitySurface.on('clicked', function (renderables) {
                 var surface = renderables.surface,
@@ -106,20 +130,20 @@ define('entityview', function (require, exports, module) {
             });
             this.entities.add(this.entitySurface.grid);
             //this.entities.add(this.detailView);
-            //this.grid.sequenceFrom(this.entitySurface.entities);
-        }.bind(this));
-    }
+            //this.grid.sequenceFrom(this.entitySurface.entities);*/
+
 
     entityView.prototype.setEntityView = function (renderables) {
         if (this._showing) {
             return;
         }
-
+        console.log(renderables.node);
         var surface = renderables.surface;
         var node = renderables.node;
         this._state = node.state;
         _createInitialState.call(this, node.state);
         _createView.call(this, node.type);
+        console.log(this.entities);
         var back = new Modifier({
             align: [.5, .5],
             origin: [0.5, 0.5],
@@ -129,9 +153,8 @@ define('entityview', function (require, exports, module) {
         surface.center = new Modifier({
             align: [.5, .5],
             origin: [.5, .5],
-
         });
-        node.set(back).add(this.entities);
+        node.add(back).add(this.entitySurface.grid);
         var finalState = this.options.finalState;
 
         node.state.transform.set(finalState.transform, this.options.transition);
@@ -139,7 +162,7 @@ define('entityview', function (require, exports, module) {
         node.state.opacity.set(finalState.opacity, this.options.transition);
         node.state.size.set(finalState.size, this.options.transition);
 
-        this._add(node.modifier).add(surface);
+        //this._add(node.modifier).add(surface);
         this._showing = !this._showing;
     }
 

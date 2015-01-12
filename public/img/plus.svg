@@ -1,0 +1,6 @@
+<svg class="widget" viewBox="0 0 32 32">
+
+    <rect x="1" y="1" width="30" height="30" rx="15" ry="15" stroke="#000000" style="stroke-width: 2px;" fill="#ffffff"></rect>
+    <path d="M8 16 L24 16 M16 8L16 24" stroke="#000000" style="stroke-width: 2px; stroke-linecap: round;"></path>
+
+</svg>

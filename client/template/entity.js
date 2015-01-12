@@ -1,4 +1,4 @@
-Session.setDefault('entity', true);
+/*Session.setDefault('entity', true);
 
 Template.entity.rendered = function () {
     if (Session.get('entity')) {
@@ -26,7 +26,7 @@ Template.entity.rendered = function () {
             });
         });
     }
-    /*container.each(function (d, i) {
+    container.each(function (d, i) {
         var dim = {
             width: this.clientWidth,
             height: this.clientHeight
@@ -35,5 +35,5 @@ Template.entity.rendered = function () {
         Snap.load("img/plate7.svg", function (f) {
             g = f.select("g");
         }.bind(this));
-    });*/
-};
+    });
+};*/

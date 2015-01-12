@@ -3,6 +3,7 @@ define('entity', function (require, exports, module) {
         Surface = require("famous/core/Surface"),
         Modifier = require("famous/core/Modifier"),
         EventHandler = require("famous/core/EventHandler"),
+        CardSnap = require('card'),
         View = require("famous/core/View"),
         Grid = require("famous/views/GridLayout"),
         RenderNode = require("famous/core/RenderNode"),
@@ -10,7 +11,7 @@ define('entity', function (require, exports, module) {
         ContainerSurface = require("famous/surfaces/ContainerSurface");
 
 
-    function entity(entities) {
+    function entity(type) {
         this.entities = [];
         this.node = [];
         this.index = 0;
@@ -23,30 +24,106 @@ define('entity', function (require, exports, module) {
         this._eventOutput = new EventHandler();
         EventHandler.setInputHandler(this, this._eventInput);
         EventHandler.setOutputHandler(this, this._eventOutput);
-        _create.call(this, entities);
+        _create.call(this, type);
 
     }
 
-    function _create(entities) {
+    function _create(type) {
+        var that = this;
+        Meteor.subscribe('entity', function () {
+            Blaze.renderWithData(Template.entity,
+                Entity.find({
+                    type: type
+                }), Body)
+        });
+
+        Template.entity.rendered = function () {
+            console.log(this, this.data);
+            this.findAll('.item').forEach(function (item, i) {
+                that.index++;
+                var data = this.data.fetch()[i];
+                console.log(data);
+                var node = new RenderNode();
+                node.index = i;
+                node.data = data;
+
+                node.surface = new Surface({
+                    content: item,
+                    classes: ['center']
+                });
+                node.surface.modifier = new Modifier({
+                    origin: [0, 0]
+                });
+                node.surface.on('click', function () {
+                    console.log(node, "node.surface");
+                    that.curEntity = this;
+                    that._eventOnput.emit('clicked', {
+                        surface: this,
+                        node: node
+                    });
+                });
+                node.getState = function () {
+                    return _getState.call(that, node.index);
+                };
+                node.getModifier = function () {
+                    return _getModifier.call(that, node.index);
+                };
+                var cardSnap = new CardSnap(item);
+                node.add(node.surface.modifier).add(node.surface);
+                that.node.push(node);
+
+            }.bind(this));
+            that.grid.setOptions({
+                dimensions: that.index < 3 ? [that.index, 2] : [3, Math.round(that.index / 3)]
+            });
+            that.grid.sequenceFrom(that.node);
+        }
+
+        /*function _create(context) {
         var that = this;
         Session.set('entity', true);
-        entities.forEach(function (doc, i) {
-            console.log(doc, i);
+        context.findAll('.item').forEach(function (item, i) {
             that.index++;
-            var center = new Modifier({
-                origin: [.5, .5]
-            });
-            var node = new ContainerSurface({
-                align: [.5, .5],
-                origin: [.5, .5],
-            });
-            var entity = new MeteorSurface({
-                template: Template.entity,
-                data: doc,
+            var data = context.view._domrange.members[0].members[i].view.dataVar.curValue;
+            console.log(data);
+            var node = new RenderNode();
+            node.index = i;
+            node.data = data;
+
+            node.surface = new Surface({
+                content: item,
                 classes: ['center']
             });
-            console.log(Template.entity);
-            /*entity.inputModifier = new Modifier({
+            node.surface.modifier = new Modifier({
+                origin: [0, 0]
+            });
+            node.surface.on('click', function () {
+                console.log(node, "node.surface");
+                that.curEntity = this;
+                that._eventOnput.emit('clicked', {
+                    surface: this,
+                    node: node
+                });
+            });
+            node.getState = function () {
+                return _getState.call(that, node.index);
+            };
+            node.getModifier = function () {
+                return _getModifier.call(that, node.index);
+            };
+            //var cardSnap = new CardSnap(item);
+            node.add(node.surface.modifier).add(node.surface);
+            that.node.push(node);
+            that.grid.setOptions({
+                dimensions: that.index < 3 ? [that.index, 2] : [3, Math.round(that.index / 3)]
+            });
+            console.log(that.node);
+            that.grid.sequenceFrom(that.node);
+            console.log(that.grid);
+        });*/
+
+
+        /*entity.inputModifier = new Modifier({
                 size: [true, true],
                 origin: [0, .5],
             });
@@ -60,31 +137,8 @@ define('entity', function (require, exports, module) {
                     fontSize: '50px'
                 }
             });*/
-            entity.on('click', function () {
-                console.log(node);
-                that.curEntity = this;
-                that._eventOutput.emit('clicked', {
-                    surface: this,
-                    node: node
-                });
-            });
-            node.add(entity);
-            //node.add(entity.inputModifier).add(entity.inputSurface);
-            that.entities.push(entity);
-            that.node.push(node);
-            entity.data = doc;
-            entity.index = i;
-            entity.getState = function () {
-                return _getState.call(that, entity.index);
-            };
-            entity.getModifier = function () {
-                return _getModifier.call(that, entity.index);
-            };
-        });
-        this.grid.setOptions({
-            dimensions: this.index < 3 ? [this.index, 2] : [3, Math.round(this.index / 3)]
-        });
-        this.grid.sequenceFrom(this.node);
+        //node.add(entity.inputModifier).add(entity.inputSurface);
+
     }
 
     function _initialState(index) {

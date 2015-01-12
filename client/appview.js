@@ -6,18 +6,24 @@ define('appview', function (require, exports, module) {
         HeaderFooterLayout = require("famous/views/HeaderFooterLayout"),
         cardView = require("cardview"),
         headerView = require('headerview'),
+        footerView = require('footerview'),
         entityView = require('entityview');
 
     function appView() {
         View.apply(this, arguments);
-        this.layout = new HeaderFooterLayout();
+        this.layout = new HeaderFooterLayout({
+            headerSize: tracker.height/6,
+            footerSize: tracker.height/6
+        });
         this.cardView = new cardView();
         this.entityView = new entityView();
         this.headerView = new headerView();
+        this.footerView = new footerView();
         this.layout.content.add(this.cardView);
         this.layout.content.add(this.entityView);
         this._add(this.layout);
         _createHeaderView.call(this);
+        _createFooterView.call(this);
         _setListeners.call(this);
     }
 
@@ -32,7 +38,11 @@ define('appview', function (require, exports, module) {
             size: [undefined, 200]
         });
         this.headerContainer.add(this.headerView);
-        this.layout.header.add(this.headerContainer);
+        this.layout.header.add(this.headerView);
+    }
+
+    function _createFooterView(){
+        this.layout.footer.add(this.footerView);
     }
 
     function _setListeners() {

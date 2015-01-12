@@ -2,19 +2,28 @@
     <title>Ambrosia Site</title>
 </head>
 
-<template name='famous'>
+<template name='plus'>
+    <svg class='plus'></svg>
 </template>
 
 <template name='card' class='card'>
-    <svg class='card-container{{index}}' id="cardsvg">
-    </svg>
-    <input class=' input-card type_name_input ' type='text ' value='{{type}} '>
+    {{#each cards}}
+    <div class='item'>
+        <svg class='card-container' id="cardsvg">
+        </svg>
+        <input class='input-card type_name_input ' type='text ' value='{{type}} '>
+    </div>
+    {{/each}}
 </template>
 
-<template name='entity ' class='entity '>
-    <svg class='entity-container ' id="entitysvg">
-    </svg>
-    <input class='input-card type_name_input ' type='text ' value='{{name}} '>
+<template name='entity' class='entity'>
+    {{#each this}}
+    <div class="item">
+        <svg class='entity-container ' id="entitysvg">
+        </svg>
+        <input class='input-card type_name_input ' type='text' value='{{name}}'>
+    </div>
+    {{/each}}
 </template>
 
 <template name='details '>
